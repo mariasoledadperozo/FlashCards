@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flashcards Interactivas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: clamp(1.5em, 5vw, 2.5em);
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .topic-selector {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .topic-btn {
+            padding: 12px 24px;
+            font-size: clamp(0.9em, 3vw, 1.1em);
+            border: 2px solid white;
+            border-radius: 50px;
+            cursor: pointer;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            font-weight: bold;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+        }
+
+        .topic-btn.active {
+            background: white;
+            color: #667eea;
+        }
+
+        .topic-btn:hover {
+            transform: translateY(-2px);
+            background: rgba(255,255,255,0.3);
+        }
+
+        .topic-btn.active:hover {
+            background: white;
+        }
+
+        .counter {
+            font-size: clamp(1em, 3vw, 1.2em);
+            opacity: 0.9;
+            margin-top: 10px;
+        }
+
+        .card-container {
+            perspective: 1000px;
+            margin-bottom: 20px;
+            touch-action: manipulation;
+        }
+
+        .card {
+            width: 100%;
+            height: clamp(300px, 60vh, 450px);
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+            cursor: pointer;
+        }
+
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 20px;
+            padding: clamp(20px, 5vw, 40px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            overflow-y: auto;
+        }
+
+        .card-front {
+            background: linear-gradient(135deg, #ffffff 0%, #f5f7fa 100%);
+            color: #2c3e50;
+        }
+
+        .card-back {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            transform: rotateY(180deg);
+        }
+
+        .card-front h2 {
+            font-size: clamp(1.2em, 4vw, 1.8em);
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+
+        .card-front p, .card-back p {
+            font-size: clamp(1em, 3vw, 1.2em);
+            line-height: 1.6;
+            max-width: 100%;
+        }
+
+        .hint {
+            position: absolute;
+            bottom: 15px;
+            font-size: clamp(0.8em, 2.5vw, 0.9em);
+            opacity: 0.7;
+            font-style: italic;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: clamp(10px, 3vw, 15px) clamp(20px, 5vw, 30px);
+            font-size: clamp(0.9em, 3vw, 1.1em);
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            touch-action: manipulation;
+        }
+
+        .btn-prev {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .btn-next {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .btn-shuffle {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: white;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+
+        button:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Mejoras para móvil */
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+
+            .card-face {
+                padding: 20px 15px;
+            }
+
+            .controls {
+                gap: 8px;
+            }
+
+            button {
+                min-width: 80px;
+            }
+
+            .btn-shuffle {
+                width: 100%;
+                order: 3;
+            }
+        }
+
+        /* Scroll suave en las tarjetas */
+        .card-face::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .card-face::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.1);
+            border-radius: 10px;
+        }
+
+        .card-face::-webkit-scrollbar-thumb {
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 Flashcards Interactivas</h1>
+            
+            <div class="topic-selector">
+                <button class="topic-btn active" data-topic="prl">🦺 Derecho Laboral</button>
+                <button class="topic-btn" data-topic="iot">🔌 IoT</button>
+            </div>
+
+            <div class="counter">
+                Tarjeta <span id="current">1</span> de <span id="total">30</span>
+            </div>
+        </div>
+
+        <div class="card-container">
+            <div class="card" id="card">
+                <div class="card-face card-front">
+                    <h2>Pregunta</h2>
+                    <p id="question"></p>
+                    <div class="hint">👆 Toca para ver la respuesta</div>
+                </div>
+                <div class="card-face card-back">
+                    <p id="answer"></p>
+                    <div class="hint">👆 Toca para ver la pregunta</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn-prev" id="prevBtn">⬅️ Anterior</button>
+            <button class="btn-next" id="nextBtn">Siguiente ➡️</button>
+            <button class="btn-shuffle" id="shuffleBtn">🔀 Mezclar</button>
+        </div>
+    </div>
+
+    <script>
+        const flashcardsData = {
+            prl: [
+                {
+                    question: "¿Qué es la salud según la OMS?",
+                    answer: "Estado de bienestar físico, mental y social completo, no simplemente la ausencia de daño o enfermedad."
+                },
+                {
+                    question: "¿Cuáles son los tres aspectos de la salud laboral?",
+                    answer: "Bienestar físico (ausencia de daño), bienestar psíquico (equilibrio emocional) y bienestar social (relaciones y reconocimiento)."
+                },
+                {
+                    question: "¿Qué es el riesgo laboral?",
+                    answer: "La posibilidad de que un trabajador sufra algún daño en la salud derivado de las condiciones de trabajo."
+                },
+                {
+                    question: "¿Qué es una condición de trabajo?",
+                    answer: "Cualquier característica del trabajo que puede influir en que aparezcan riesgos para la seguridad y salud del trabajador (locales, agentes físicos/químicos/biológicos, procedimientos, organización)."
+                },
+                {
+                    question: "¿Cuáles son los 4 grupos de factores de riesgo laboral?",
+                    answer: "1) Condiciones de seguridad, 2) Condiciones medioambientales, 3) Condiciones ergonómicas, 4) Condiciones psicológicas."
+                },
+                {
+                    question: "¿Qué daños producen las condiciones de seguridad inadecuadas?",
+                    answer: "Accidentes de trabajo (relacionados con lugares, instalaciones, máquinas y herramientas)."
+                },
+                {
+                    question: "¿Qué daños producen las condiciones medioambientales inadecuadas?",
+                    answer: "Enfermedades profesionales (por agentes físicos, químicos y biológicos)."
+                },
+                {
+                    question: "¿Qué daños producen las condiciones ergonómicas inadecuadas?",
+                    answer: "Fatiga física y mental (por carga física: esfuerzos, posturas; carga mental: información, decisiones)."
+                },
+                {
+                    question: "¿Qué daños producen las condiciones psicológicas inadecuadas?",
+                    answer: "Insatisfacción laboral, estrés, mobbing y burnout (relacionados con organización del trabajo y características personales)."
+                },
+                {
+                    question: "¿Cuáles son los 3 requisitos legales del accidente de trabajo?",
+                    answer: "1) Que exista lesión física o psíquica, 2) Relación laboral (cuenta ajena o propia), 3) Relación de causalidad entre trabajo y lesión."
+                },
+                {
+                    question: "¿Qué es un accidente in itinere?",
+                    answer: "El accidente que sufre el trabajador al ir o volver de su lugar de trabajo, en el recorrido habitual, sin interrupciones significativas y usando medio adecuado."
+                },
+                {
+                    question: "¿Qué NO se considera accidente de trabajo?",
+                    answer: "Los debidos a fuerza mayor extraña al trabajo y los debidos a imprudencia temeraria o dolo (intencional) del trabajador."
+                },
+                {
+                    question: "¿Qué es un accidente típico (clasificación preventiva)?",
+                    answer: "Accidente donde hay lesiones en las personas Y daños materiales."
+                },
+                {
+                    question: "¿Qué es un accidente caso?",
+                    answer: "Accidente donde hay lesiones en las personas pero NO daños materiales."
+                },
+                {
+                    question: "¿Qué es un accidente blanco?",
+                    answer: "Accidente donde NO hay lesiones en las personas pero SÍ daños materiales."
+                },
+                {
+                    question: "¿Qué es un incidente?",
+                    answer: "Situación donde NO hay ni lesiones ni daños materiales, pero existe riesgo que podría haberlas provocado."
+                },
+                {
+                    question: "Define accidente de trabajo desde el punto de vista preventivo",
+                    answer: "Acontecimiento o suceso anormal, no previsto, no deseado, que interrumpe la actividad normal de la empresa y que puede ocasionar lesiones a las personas."
+                },
+                {
+                    question: "¿Cuáles son las causas técnicas de los accidentes?",
+                    answer: "Características de instalaciones y lugares, protección de equipos/máquinas, medio ambiente (iluminación, ruido, temperatura) y organización del trabajo."
+                },
+                {
+                    question: "¿Cuáles son las causas humanas de los accidentes?",
+                    answer: "Trabajador desconoce el riesgo, sabe que existe pero no sabe actuar, conoce pero decide no actuar preventivamente, o falta de formación/información."
+                },
+                {
+                    question: "¿Qué diferencia hay entre enfermedad profesional y accidente de trabajo en cuanto al tiempo?",
+                    answer: "Enfermedad profesional: lenta, efectos aparecen con los años. Accidente de trabajo: súbito, instantáneo, lesiones inmediatas."
+                },
+                {
+                    question: "¿Qué es la fatiga laboral?",
+                    answer: "Disminución de la capacidad física y mental para realizar el trabajo debido al cansancio (puede ser física o mental)."
+                },
+                {
+                    question: "¿Qué es la insatisfacción laboral?",
+                    answer: "Actitud general negativa hacia el trabajo por la diferencia entre expectativas y realidad, cuando esa diferencia es importante para el trabajador."
+                },
+                {
+                    question: "¿Cuál es la diferencia entre medidas de prevención y protección?",
+                    answer: "Prevención: evita el riesgo antes de que ocurra, actúa sobre el foco. Protección: no evita el riesgo, reduce sus consecuencias, actúa sobre medio o trabajador."
+                },
+                {
+                    question: "¿Cuál es el orden de prioridad de las medidas?",
+                    answer: "1º Prevención (evitar riesgos en origen), 2º Protección colectiva, 3º Protección individual (EPIs)."
+                },
+                {
+                    question: "¿Qué es la Seguridad como técnica de prevención?",
+                    answer: "Técnica que trata de evitar accidentes de trabajo actuando sobre condiciones de seguridad (instalaciones, lugares, equipos, máquinas)."
+                },
+                {
+                    question: "¿Qué es la Higiene Industrial?",
+                    answer: "Técnica que previene enfermedades profesionales por contaminantes físicos, químicos y biológicos, valorando si superan umbrales permitidos."
+                },
+                {
+                    question: "¿Qué es la Ergonomía?",
+                    answer: "Técnica que evita la fatiga adaptando el trabajo al trabajador mediante diseño de herramientas, máquinas y puestos de trabajo."
+                },
+                {
+                    question: "¿Qué es la Psicosociología?",
+                    answer: "Técnica de lucha contra la insatisfacción laboral mediante organización del trabajo y diseño de puestos para lograr motivación y satisfacción."
+                },
+                {
+                    question: "¿Qué es la Medicina del Trabajo?",
+                    answer: "Técnicas médicas que previenen pérdida de salud: vacunación, reconocimientos médicos periódicos, curación y rehabilitación."
+                },
+                {
+                    question: "¿Qué son los EPIs y cuándo se usan?",
+                    answer: "Equipos de Protección Individual: última medida, equipos que lleva el trabajador para protegerle de riesgos (guantes, mascarillas, cascos, etc). Se usan cuando prevención y protección colectiva no son suficientes."
+                }
+            ],
+            iot: [
+                {
+                    question: "¿Qué es el IoT (Internet de las Cosas)?",
+                    answer: "Es la interconexión de dispositivos cotidianos a la red, creando una red de objetos inteligentes que pueden recopilar, analizar e intercambiar datos."
+                },
+                {
+                    question: "¿Quién acuñó el término IoT y en qué año?",
+                    answer: "Kevin Ashton, tecnólogo británico, en 1999 mientras trabajaba para Procter & Gamble implementando etiquetas RFID."
+                },
+                {
+                    question: "¿Cuándo 'nació' realmente el IoT?",
+                    answer: "Entre 2008 y 2009. En 2010 había 12.500 millones de objetos conectados y se esperaba superar los 50.000 millones en 2020."
+                },
+                {
+                    question: "¿Qué es el IIoT?",
+                    answer: "Internet Industrial de las Cosas. Se aplica en entornos industriales como parte de la Industria 4.0, buscando digitalización completa de cadenas de valor."
+                },
+                {
+                    question: "¿Qué es la Industria 4.0?",
+                    answer: "Término adoptado en Alemania en 2011. Es la digitalización completa de las cadenas de valor desde proveedores hasta clientes, fabricación inteligente donde mundos físico y virtual crecen juntos."
+                },
+                {
+                    question: "¿Cuáles son los componentes principales de la Industria 4.0?",
+                    answer: "IoT, sistemas Ciber-Físicos (CPS), Internet de Servicios (IoS), fábricas inteligentes y manufactura aditiva."
+                },
+                {
+                    question: "¿Cuáles son las 4 capas de un sistema IoT?",
+                    answer: "1) Capa de Percepción (sensores y actuadores), 2) Capa de Red (intercambio de datos), 3) Capa de Integración de información, 4) Capa de Aplicación."
+                },
+                {
+                    question: "¿Qué función tienen los sensores en IoT?",
+                    answer: "Detectan y recopilan información sobre el entorno (temperatura, humedad, luz, humo, presencia). Complementan sentidos humanos y pueden anticipar necesidades."
+                },
+                {
+                    question: "¿Qué función tienen los actuadores en IoT?",
+                    answer: "Realizan correcciones o acciones en tiempo real basadas en información de sensores (ajustar temperatura, encender luces, etc.) sin intervención humana."
+                },
+                {
+                    question: "¿Qué hace la Capa de Red en IoT?",
+                    answer: "Recoge datos de sensores, los convierte a formato digital y permite procesamiento e intercambio vía Wi-Fi o WAN. Usa protocolo IPv6."
+                },
+                {
+                    question: "¿Por qué es importante IPv6 para IoT?",
+                    answer: "Por su vasto espacio de direcciones y mejoras en seguridad y eficiencia, permitiendo conectar miles de millones de dispositivos."
+                },
+                {
+                    question: "¿Qué es un microcontrolador?",
+                    answer: "Pequeña computadora en un único circuito integrado que integra procesador, memoria y periféricos E/S. Es programable y se usa en productos controlados automáticamente."
+                },
+                {
+                    question: "¿Qué es Arduino?",
+                    answer: "Plataforma de hardware y software libre con microcontrolador reprogramable y pines hembra. Usa lenguaje basado en C++, bajo costo, gran comunidad."
+                },
+                {
+                    question: "Menciona 3 ventajas de Arduino",
+                    answer: "1) Gran comunidad, 2) Lenguaje sencillo basado en C++, 3) Bajo costo, 4) Fácil de reprogramar, 5) No requiere conocimientos avanzados."
+                },
+                {
+                    question: "¿Qué es Raspberry Pi?",
+                    answer: "Computadora de bajo costo, tamaño compacto (como tarjeta de crédito), ejecuta sistema operativo Linux (Raspbian). Puede conectarse a monitor, mouse, teclado."
+                },
+                {
+                    question: "¿Cuándo usar Arduino vs Raspberry Pi?",
+                    answer: "Arduino: control hardware bajo nivel, sensores en tiempo real, recursos limitados, bajo consumo. Raspberry Pi: mayor procesamiento, SO completo, aplicaciones complejas (IA, bases de datos, servidores)."
+                },
+                {
+                    question: "¿Qué es GPIO?",
+                    answer: "General Purpose Input/Output. Pines de propósito general configurables como entradas o salidas para interactuar con componentes externos de forma digital."
+                },
+                {
+                    question: "¿Qué es I2C?",
+                    answer: "Inter-Integrated Circuit. Bus de comunicación serial de dos hilos que permite que varios dispositivos se comuniquen (ej: conectar múltiples sensores con solo 2 pines)."
+                },
+                {
+                    question: "¿Qué es UART?",
+                    answer: "Universal Asynchronous Receiver/Transmitter. Permite comunicación serial asíncrona entre dos dispositivos (ej: Arduino con ordenador)."
+                },
+                {
+                    question: "¿Diferencia entre sensores analógicos y digitales?",
+                    answer: "Analógicos: señal continua que varía, requieren conversión ADC. Digitales: señal discreta, valor binario o dato ya digitalizado."
+                },
+                {
+                    question: "4 criterios para seleccionar hardware IoT",
+                    answer: "1) Tipo de sensor (analógico/digital), 2) Necesidad de conectividad (Wi-Fi, Bluetooth), 3) Capacidad de procesamiento, 4) Consumo energético y coste."
+                },
+                {
+                    question: "Beneficios del IoT en Logística",
+                    answer: "Sensores en palets, gestión de almacenes, logística móvil, control de procedencia geográfica de alimentos."
+                },
+                {
+                    question: "Beneficios del IoT en Energía",
+                    answer: "Medición y control de contaminación (CO2, ruido), pronóstico climático, datos de consumo energético, medición inteligente, redes inteligentes."
+                },
+                {
+                    question: "Beneficios del IoT en Producción",
+                    answer: "Sensores de gas, flujo, humedad, temperatura, movimiento. Visión de máquinas, control inteligente de robots, análisis predictivo, prevención de sobreproducción."
+                },
+                {
+                    question: "Beneficios del IoT en Salud",
+                    answer: "Monitoreo de enfermedades crónicas, diagnóstico remoto, pulseras conectadas, seguimiento de actividad física, etiquetas inteligentes para fármacos, biochips."
+                },
+                {
+                    question: "Beneficios del IoT en Ciudades Inteligentes",
+                    answer: "Integración de servicios de seguridad, optimización transporte público/privado, sensores de aparcamiento, gestión inteligente de semáforos, riego de parques, contenedores inteligentes."
+                },
+                {
+                    question: "¿Qué es un sistema embebido?",
+                    answer: "Integración entre software y hardware diseñados para funciones particulares, contenidos en aparatos domésticos, autos o móviles (ej: taxímetro, lector de carnet)."
+                },
+                {
+                    question: "Menciona 3 modelos de Arduino",
+                    answer: "Arduino Nano, Arduino UNO (R4 Wi-Fi y Minima), Arduino Mega, Arduino Leonardo, Arduino Yun."
+                },
+                {
+                    question: "¿Qué sistemas operativos usa Raspberry Pi?",
+                    answer: "Principalmente GNU/Linux como Raspbian (derivado de Debian) y Pi-Top OS. También facilita instalación con NOOBS (New Out of Box Software)."
+                },
+                {
+                    question: "¿Cuál fue el primer microprocesador y cuándo se creó?",
+                    answer: "Intel 4004, creado en 1971."
+                }
+            ]
+        };
+
+        let currentTopic = 'prl';
+        let currentIndex = 0;
+        let cards = [...flashcardsData[currentTopic]];
+
+        const card = document.getElementById('card');
+        const questionEl = document.getElementById('question');
+        const answerEl = document.getElementById('answer');
+        const currentEl = document.getElementById('current');
+        const totalEl = document.getElementById('total');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const shuffleBtn = document.getElementById('shuffleBtn');
+        const topicBtns = document.querySelectorAll('.topic-btn');
+
+        function showCard(index) {
+            questionEl.textContent = cards[index].question;
+            answerEl.textContent = cards[index].answer;
+            currentEl.textContent = index + 1;
+            totalEl.textContent = cards.length;
+            card.classList.remove('flipped');
+            
+            prevBtn.disabled = index === 0;
+            nextBtn.disabled = index === cards.length - 1;
+        }
+
+        function changeTopic(topic) {
+            currentTopic = topic;
+            cards = [...flashcardsData[topic]];
+            currentIndex = 0;
+            
+            topicBtns.forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.topic === topic);
+            });
+            
+            showCard(currentIndex);
+        }
+
+        card.addEventListener('click', () => {
+            card.classList.toggle('flipped');
+        });
+
+        prevBtn.addEventListener('click', () => {
+            if (currentIndex > 0) {
+                currentIndex--;
+                showCard(currentIndex);
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (currentIndex < cards.length - 1) {
+                currentIndex++;
+                showCard(currentIndex);
+            }
+        });
+
+        shuffleBtn.addEventListener('click', () => {
+            for (let i = cards.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [cards[i], cards[j]] = [cards[j], cards[i]];
+            }
+            currentIndex = 0;
+            showCard(currentIndex);
+        });
+
+        topicBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                changeTopic(btn.dataset.topic);
+            });
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft' && currentIndex > 0) {
+                currentIndex--;
+                showCard(currentIndex);
+            } else if (e.key === 'ArrowRight' && currentIndex < cards.length - 1) {
+                currentIndex++;
+                showCard(currentIndex);
+            } else if (e.key === ' ') {
+                e.preventDefault();
+                card.classList.toggle('flipped');
+            }
+        });
+
+        // Soporte para gestos táctiles
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        card.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        }, { passive: true });
+
+        card.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        }, { passive: true });
+
+        function handleSwipe() {
+            const swipeThreshold = 50;
+            if (touchEndX < touchStartX - swipeThreshold && currentIndex < cards.length - 1) {
+                currentIndex++;
+                showCard(currentIndex);
+            }
+            if (touchEndX > touchStartX + swipeThreshold && currentIndex > 0) {
+                currentIndex--;
+                showCard(currentIndex);
+            }
+        }
+
+        showCard(currentIndex);
+    </script>
+</body>
+</html>
