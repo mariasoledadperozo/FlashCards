@@ -1,48 +1,53 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FlashCards</title>
+    <title>Flashcards de Componentes de Hardware</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen font-sans p-4">
 
-     <div class="container">
-        <div class="header">
-            <h1>📚 Flashcards Interactivas</h1>
-            
-            <div class="topic-selector">
-                <button class="topic-btn active" data-topic="gestion">💼 Gestión Empresarial</button>
-                <button class="topic-btn" data-topic="movil">📱 Programación Móvil</button>
-            </div>
-
-            <div class="counter">
-                Tarjeta <span id="current">1</span> de <span id="total">30</span>
-            </div>
-        </div>
-
-        <div class="card-container">
-            <div class="card" id="card">
-                <div class="card-face card-front">
-                    <h2>Pregunta</h2>
-                    <p id="question"></p>
-                    <div class="hint">👆 Toca para ver la respuesta</div>
+    <div class="w-full max-w-md mx-auto">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Flashcards de Hardware</h1>
+        
+        <!-- Contenedor de la Tarjeta -->
+        <div id="card" class="card perspective w-full h-72 md:h-80 cursor-pointer mb-6">
+            <div class="card-inner">
+                <!-- Cara Frontal (Imagen) -->
+                <div class="card-face card-front bg-white rounded-xl shadow-lg p-6">
+                    <img id="front-image" src="" alt="Componente de hardware" class="max-w-full max-h-full object-contain">
                 </div>
-                <div class="card-face card-back">
-                    <p id="answer"></p>
-                    <div class="hint">👆 Toca para ver la pregunta</div>
+                <!-- Cara Trasera (Nombre y Descripción) -->
+                <div class="card-face card-back bg-blue-500 text-white rounded-xl shadow-lg p-6 text-center">
+                    <h2 id="back-name" class="text-2xl font-bold mb-3"></h2>
+                    <p id="back-description" class="text-base"></p>
                 </div>
             </div>
         </div>
 
-        <div class="controls">
-            <button class="btn-prev" id="prevBtn">⬅️ Anterior</button>
-            <button class="btn-next" id="nextBtn">Siguiente ➡️</button>
-            <button class="btn-shuffle" id="shuffleBtn">🔀 Mezclar</button>
+        <!-- Navegación -->
+        <div class="flex justify-between items-center mb-4">
+            <button id="prev-button" class="bg-gray-300 text-gray-700 py-2 px-6 rounded-lg shadow hover:bg-gray-400 transition duration-300 disabled:opacity-50">
+                Anterior
+            </button>
+            <span id="progress-text" class="text-gray-600 font-medium"></span>
+            <button id="next-button" class="bg-blue-600 text-white py-2 px-6 rounded-lg shadow hover:bg-blue-700 transition duration-300 disabled:opacity-50">
+                Siguiente
+            </button>
         </div>
+        
+        <!-- Botón de Shuffle -->
+        <div class="text-center mb-4">
+            <button id="shuffle-button" class="bg-green-500 text-white py-2 px-8 rounded-lg shadow hover:bg-green-600 transition duration-300">
+                🔀 Mezclar Tarjetas
+            </button>
+        </div>
+        
+        <p class="text-center text-gray-500 text-sm">Haz clic en la tarjeta para voltearla.</p>
     </div>
-    
+
     <script src="main.js"></script>
 </body>
 </html>
