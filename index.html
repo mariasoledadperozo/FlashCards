@@ -7,47 +7,82 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="styles.css">
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen font-sans p-4">
+<body>
 
-    <div class="w-full max-w-md mx-auto">
-        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Flashcards de Hardware</h1>
-        
-        <!-- Contenedor de la Tarjeta -->
-        <div id="card" class="card perspective w-full h-72 md:h-80 cursor-pointer mb-6">
-            <div class="card-inner">
-                <!-- Cara Frontal (Imagen) -->
-                <div class="card-face card-front bg-white rounded-xl shadow-lg p-6">
-                    <img id="front-image" src="" alt="Componente de hardware" class="max-w-full max-h-full object-contain">
-                </div>
-                <!-- Cara Trasera (Nombre y Descripción) -->
-                <div class="card-face card-back bg-blue-500 text-white rounded-xl shadow-lg p-6 text-center">
-                    <h2 id="back-name" class="text-2xl font-bold mb-3"></h2>
-                    <p id="back-description" class="text-base"></p>
-                </div>
-            </div>
-        </div>
+<h1>Flashcards de Conversión entre Bases</h1>
+<p style="text-align:center;">Haz clic en cada tarjeta para ver el procedimiento.</p>
 
-        <!-- Navegación -->
-        <div class="flex justify-between items-center mb-4">
-            <button id="prev-button" class="bg-gray-300 text-gray-700 py-2 px-6 rounded-lg shadow hover:bg-gray-400 transition duration-300 disabled:opacity-50">
-                Anterior
-            </button>
-            <span id="progress-text" class="text-gray-600 font-medium"></span>
-            <button id="next-button" class="bg-blue-600 text-white py-2 px-6 rounded-lg shadow hover:bg-blue-700 transition duration-300 disabled:opacity-50">
-                Siguiente
-            </button>
-        </div>
-        
-        <!-- Botón de Shuffle -->
-        <div class="text-center mb-4">
-            <button id="shuffle-button" class="bg-green-500 text-white py-2 px-8 rounded-lg shadow hover:bg-green-600 transition duration-300">
-                🔀 Mezclar Tarjetas
-            </button>
-        </div>
-        
-        <p class="text-center text-gray-500 text-sm">Haz clic en la tarjeta para voltearla.</p>
-    </div>
 
+<div class="grid">
+<div class="card" onclick="toggleCard(this)">
+<div class="front visible"><strong>Decimal → Binario</strong></div>
+<div class="back">Usa divisiones sucesivas entre 2. Toma los restos y léelos al revés.</div>
+</div>
+
+
+<div class="card" onclick="toggleCard(this)">
+<div class="front visible"><strong>Decimal → Octal</strong></div>
+<div class="back">Haz divisiones sucesivas entre 8 y lee los restos al revés.</div>
+</div>
+
+
+<div class="card" onclick="toggleCard(this)">
+<div class="front visible"><strong>Decimal → Hexadecimal</strong></div>
+<div class="back">Realiza divisiones sucesivas entre 16. Los restos (0–F) se leen invertidos.</div>
+</div>
+
+
+<div class="card" onclick="toggleCard(this)">
+<div class="front visible"><strong>Binario → Decimal</strong></div>
+<div class="back">Multiplica cada bit por 2 elevado a su posición y suma todo.</div>
+</div>
+
+
+<div class="card" onclick="toggleCard(this)">
+<div class="front visible"><strong>Binario → Octal</strong></div>
+<div class="back">Agrupa los bits de 3 en 3 desde la derecha y reemplaza por dígitos octales.</div>
+</div>
+
+
+<div class="card" onclick="toggleCard(this)">
+<div class="front visible"><strong>Binario → Hexadecimal</strong></div>
+<div class="back">Agrupa en grupos de 4 bits y sustitúyelos por su equivalente hexadecimal.</div>
+</div>
+
+
+<div class="card" onclick="toggleCard(this)">
+<div class="front visible"><strong>Octal → Decimal</strong></div>
+<div class="back">Multiplica cada dígito por 8 elevado a su posición y suma los resultados.</div>
+</div>
+
+
+<div class="card" onclick="toggleCard(this)">
+<div class="front visible"><strong>Octal → Binario</strong></div>
+<div class="back">Convierte cada dígito octal a su equivalente de 3 bits.</div>
+</div>
+
+
+<div class="card" onclick="toggleCard(this)">
+<div class="front visible"><strong>Hexadecimal → Binario</strong></div>
+<div class="back">Cambia cada dígito hexadecimal por su equivalente de 4 bits.</div>
+</div>
+
+
+<div class="card" onclick="toggleCard(this)">
+<div class="front visible"><strong>Hexadecimal → Decimal</strong></div>
+<div class="back">Multiplica cada dígito por 16 elevado a su posición y suma.</div>
+</div>
+<div class="card" onclick="toggleCard(this)">
+<div class="front visible"><strong>Octal → Hexadecimal</strong></div>
+<div class="back">Convierte octal a binario (3 bits por dígito) y luego agrupa en 4 bits para obtener hexadecimal.</div>
+</div>
+
+
+<div class="card" onclick="toggleCard(this)">
+<div class="front visible"><strong>Hexadecimal → Octal</strong></div>
+<div class="back">Convierte cada dígito hexadecimal a 4 bits, luego agrupa en 3 bits para obtener octal.</div>
+</div>
+</div>
     <script src="main.js"></script>
 </body>
 </html>
